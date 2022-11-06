@@ -88,14 +88,15 @@ function draw() {
 
 function CreateSurfaceData()
 {
-    let vertexList = [];
-
-    for (let i=0; i<360; i+=5) {
-        vertexList.push( Math.sin(deg2rad(i)), 1, Math.cos(deg2rad(i)) );
-        vertexList.push( Math.sin(deg2rad(i)), 0, Math.cos(deg2rad(i)) );
+    let vertices = [];
+    for (let z = -1; z <= 1; z += 0.1) {
+      for (let u = 0; u <= 360; u += 5) {
+        const x = z ** 2 * Math.sqrt(1 - z) * Math.cos(u);
+        const y = z ** 2 * Math.sqrt(1 - z) * Math.sin(u);
+        vertices.push(x, y, z);
+      }
     }
-
-    return vertexList;
+    return vertices;
 }
 
 

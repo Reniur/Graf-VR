@@ -4,6 +4,8 @@ let gl;                         // The webgl context.
 let surface;                    // A surface model
 let shProgram;                  // A shader program
 let spaceball;                  // A SimpleRotator object that lets the user rotate the view by mouse.
+let verticalPoints = 0;
+let horizontalPoints = 0;
 
 function deg2rad(angle) {
     return angle * Math.PI / 180;
@@ -15,6 +17,7 @@ function Model(name) {
     this.name = name;
     this.iVertexBuffer = gl.createBuffer();
     this.count = 0;
+    this.vertices;
 
     this.BufferData = function(vertices) {
 
@@ -22,6 +25,7 @@ function Model(name) {
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STREAM_DRAW);
 
         this.count = vertices.length/3;
+        this.vertices = vertices;
     }
 
     this.Draw = function() {
@@ -29,8 +33,15 @@ function Model(name) {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.iVertexBuffer);
         gl.vertexAttribPointer(shProgram.iAttribVertex, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(shProgram.iAttribVertex);
+
+        for (let i = 0; i < verticalPoints; i += 21) {
+            gl.drawArrays(gl.LINE_STRIP, i, 21);
+        }
+
+        for (let i = verticalPoints; i < verticalPoints + horizontalPoints; i += 73) {
+            gl.drawArrays(gl.LINE_STRIP, i, 73);
+        }
    
-        gl.drawArrays(gl.LINE_STRIP, 0, this.count);
     }
 }
 
@@ -89,21 +100,31 @@ function draw() {
 function CreateSurfaceData()
 {
     let vertices = [];
-    for (let z = -1; z <= 1; z += 0.1) {
-        for (let u = 0; u <= 360; u += 5) {
-            const x = (z ** 2) * Math.sqrt(1 - z) * Math.cos(u);
-            const y = (z ** 2) * Math.sqrt(1 - z) * Math.sin(u);
-            vertices.push(x, y, z);
+
+    // Draw vertical lines
+    for (let u = 0; u <= 360; u += 5) {
+        for (let z = -10; z <= 10; z += 1) {
+            // (21 / 1) = 21 points * 3 = 63 array elements
+            const z1 = z / 10; // Don't iterate floats
+            const x = (z1 ** 2) * Math.sqrt(1 - z1) * Math.cos(u);
+            const y = (z1 ** 2) * Math.sqrt(1 - z1) * Math.sin(u);
+            vertices.push(x, y, z1);
+            verticalPoints += 1;
         }
     }
 
-    for (let u = 0; u <= 360; u += 5) {
-        for (let z = -1; z <= 1; z += 0.1) {
-            const x = (z ** 2) * Math.sqrt(1 - z) * Math.cos(u);
-            const y = (z ** 2) * Math.sqrt(1 - z) * Math.sin(u);
-            vertices.push(x, y, z);
+    // Draw horizontal lines
+    for (let z = -10; z <= 10; z += 1) {
+        const z1 = z / 10;
+        for (let u = 0; u <= 360; u += 5) {
+            // (356 / 5) = 73 points * 3 = 219 array elements
+            const x = (z1 ** 2) * Math.sqrt(1 - z1) * Math.cos(u);
+            const y = (z1 ** 2) * Math.sqrt(1 - z1) * Math.sin(u);
+            vertices.push(x, y, z1);
+            horizontalPoints += 1;
         }
     }
+
     return vertices;
 }
 

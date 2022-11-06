@@ -90,11 +90,19 @@ function CreateSurfaceData()
 {
     let vertices = [];
     for (let z = -1; z <= 1; z += 0.1) {
-      for (let u = 0; u <= 360; u += 5) {
-        const x = z ** 2 * Math.sqrt(1 - z) * Math.cos(u);
-        const y = z ** 2 * Math.sqrt(1 - z) * Math.sin(u);
-        vertices.push(x, y, z);
-      }
+        for (let u = 0; u <= 360; u += 5) {
+            const x = (z ** 2) * Math.sqrt(1 - z) * Math.cos(u);
+            const y = (z ** 2) * Math.sqrt(1 - z) * Math.sin(u);
+            vertices.push(x, y, z);
+        }
+    }
+
+    for (let u = 0; u <= 360; u += 5) {
+        for (let z = -1; z <= 1; z += 0.1) {
+            const x = (z ** 2) * Math.sqrt(1 - z) * Math.cos(u);
+            const y = (z ** 2) * Math.sqrt(1 - z) * Math.sin(u);
+            vertices.push(x, y, z);
+        }
     }
     return vertices;
 }

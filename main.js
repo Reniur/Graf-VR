@@ -34,14 +34,8 @@ function Model(name) {
         gl.vertexAttribPointer(shProgram.iAttribVertex, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(shProgram.iAttribVertex);
 
-        for (let i = 0; i < verticalPoints; i += 21) {
-            gl.drawArrays(gl.LINE_STRIP, i, 21);
-        }
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, this.count);
 
-        for (let i = verticalPoints; i < verticalPoints + horizontalPoints; i += 73) {
-            gl.drawArrays(gl.LINE_STRIP, i, 73);
-        }
-   
     }
 }
 
@@ -101,27 +95,25 @@ function CreateSurfaceData()
 {
     let vertices = [];
 
-    // Draw vertical lines
-    for (let u = 0; u <= 360; u += 5) {
-        for (let z = -10; z <= 10; z += 1) {
-            // (21 / 1) = 21 points * 3 = 63 array elements
-            const z1 = z / 10; // Don't iterate floats
-            const x = (z1 ** 2) * Math.sqrt(1 - z1) * Math.cos(u);
-            const y = (z1 ** 2) * Math.sqrt(1 - z1) * Math.sin(u);
-            vertices.push(x, y, z1);
-            verticalPoints += 1;
-        }
-    }
+    const zMax = 1;
+    const zScale = 500;
+    const zStep = zMax / zScale;
+    const uStep = 0.5;
 
-    // Draw horizontal lines
-    for (let z = -10; z <= 10; z += 1) {
-        const z1 = z / 10;
-        for (let u = 0; u <= 360; u += 5) {
-            // (356 / 5) = 73 points * 3 = 219 array elements
-            const x = (z1 ** 2) * Math.sqrt(1 - z1) * Math.cos(u);
-            const y = (z1 ** 2) * Math.sqrt(1 - z1) * Math.sin(u);
-            vertices.push(x, y, z1);
-            horizontalPoints += 1;
+    // Draw vertical lines
+    for (let u = 0; u <= 360; u += uStep) {
+        for (let z0 = -zMax * zScale; z0 <= zMax * zScale; z0 += zStep * zScale) {
+            const z = z0 / zScale;
+
+            const x = (z ** 2) * Math.sqrt(1 - z) * Math.cos(u);
+            const y = (z ** 2) * Math.sqrt(1 - z) * Math.sin(u);
+            vertices.push(x, y, z);
+
+            const z1 = z + zStep;
+            const u1 = u + uStep;
+            const x1 = (z1 ** 2) * Math.sqrt(1 - z1) * Math.cos(u1);
+            const y1 = (z1 ** 2) * Math.sqrt(1 - z1) * Math.sin(u1);
+            vertices.push(x1, y1, z);
         }
     }
 

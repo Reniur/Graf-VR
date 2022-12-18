@@ -78,15 +78,17 @@ function draw() {
 
     let matAccum0 = m4.multiply(rotateToPointZero, modelView );
     let matAccum1 = m4.multiply(translateToPointZero, matAccum0 );
+
+    const modelviewInv = m4.inverse(matAccum1, new Float32Array(16));
+    const normalMatrix = m4.transpose(modelviewInv, new Float32Array(16));
         
     /* Multiply the projection matrix times the modelview matrix to give the
        combined transformation matrix, and send that to the shader program. */
     let modelViewProjection = m4.multiply(projection, matAccum1 );
 
     gl.uniformMatrix4fv(shProgram.iModelViewProjectionMatrix, false, modelViewProjection );
-    
-    /* Draw the six faces of a cube, with different colors. */
-    gl.uniform4fv(shProgram.iColor, [1,0,1,1] );
+
+    gl.uniformMatrix4fv(shProgram.iNormalMatrix, false, normalMatrix);
 
     surface.Draw();
 }
@@ -128,9 +130,10 @@ function initGL() {
     shProgram = new ShaderProgram('Basic', prog);
     shProgram.Use();
 
-    shProgram.iAttribVertex              = gl.getAttribLocation(prog, "vertex");
+    shProgram.iAttribVertex            = gl.getAttribLocation(prog, "vertex");
     shProgram.iModelViewProjectionMatrix = gl.getUniformLocation(prog, "ModelViewProjectionMatrix");
-    shProgram.iColor                     = gl.getUniformLocation(prog, "color");
+    shProgram.iLightPosition          = gl.getUniformLocation(prog, "lightPosition");
+    shProgram.iNormalMatrix           = gl.getUniformLocation(prog, "normalMatrix");
 
     surface = new Model('Surface');
     surface.BufferData(CreateSurfaceData());
@@ -198,6 +201,25 @@ function init() {
     }
 
     spaceball = new TrackballRotator(canvas, draw, 0);
+
+    const xInput = document.getElementById("x");
+    const yInput = document.getElementById("y");
+    const zInput = document.getElementById("z");
+
+    const updateLight = () => {
+        const x = parseFloat(xInput.value);
+        const y = parseFloat(yInput.value);
+        const z = parseFloat(zInput.value);
+
+        console.log(x, y, z);
+
+        gl.uniform3fv(shProgram.iLightPosition, [x, y, z]);
+        draw();
+    };
+
+    xInput.addEventListener("input", updateLight);
+    yInput.addEventListener("input", updateLight);
+    zInput.addEventListener("input", updateLight);
 
     draw();
 }

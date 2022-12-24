@@ -15,30 +15,35 @@ function deg2rad(angle) {
 // Constructor
 function Model(name) {
     this.name = name;
-    this.iVertexBuffer = gl.createBuffer();
     this.count = 0;
     this.vertices;
 
-    this.BufferData = function(vertices) {
+    this.BufferData = function(vertices, texcoords) {
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.iVertexBuffer);
+        // vertices
+        const vBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STREAM_DRAW);
+        gl.enableVertexAttribArray(shProgram.iAttribVertex);
+        gl.vertexAttribPointer(shProgram.iAttribVertex, 3, gl.FLOAT, false, 0, 0);
 
-        this.count = vertices.length/3;
+        // texcoords
+        const tBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, tBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoords), gl.STREAM_DRAW);
+        gl.enableVertexAttribArray(shProgram.iAttribTexcoord);
+        gl.vertexAttribPointer(shProgram.iAttribTexcoord, 2, gl.FLOAT, false, 0, 0);
+
+        this.count = vertices.length / 3;
         this.vertices = vertices;
     }
 
     this.Draw = function() {
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.iVertexBuffer);
-        gl.vertexAttribPointer(shProgram.iAttribVertex, 3, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(shProgram.iAttribVertex);
-
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, this.count);
 
     }
 }
-
 
 // Constructor
 function ShaderProgram(name, program) {
@@ -93,14 +98,18 @@ function draw() {
     surface.Draw();
 }
 
-function CreateSurfaceData()
-{
+function CreateSurfaceData() {
     let vertices = [];
+    let texcoords = [];
 
     const zMax = 1;
-    const zScale = 500;
+    const zScale = 100;
     const zStep = zMax / zScale;
     const uStep = 0.5;
+
+    const calculateUv = (u, z) => {
+        return [u / 360, (z + zMax) / (2 * zMax)];
+    }
 
     // Draw vertical lines
     for (let u = 0; u <= 360; u += uStep) {
@@ -110,16 +119,18 @@ function CreateSurfaceData()
             const x = (z ** 2) * Math.sqrt(1 - z) * Math.cos(u);
             const y = (z ** 2) * Math.sqrt(1 - z) * Math.sin(u);
             vertices.push(x, y, z);
+            texcoords.push(...calculateUv(u, z));
 
             const z1 = z + zStep;
             const u1 = u + uStep;
             const x1 = (z1 ** 2) * Math.sqrt(1 - z1) * Math.cos(u1);
             const y1 = (z1 ** 2) * Math.sqrt(1 - z1) * Math.sin(u1);
             vertices.push(x1, y1, z);
+            texcoords.push(...calculateUv(u + uStep, z + zStep));
         }
     }
 
-    return vertices;
+    return {vertices, texcoords};
 }
 
 
@@ -131,12 +142,14 @@ function initGL() {
     shProgram.Use();
 
     shProgram.iAttribVertex            = gl.getAttribLocation(prog, "vertex");
+    shProgram.iAttribTexcoord          = gl.getAttribLocation(prog, "texcoord");
     shProgram.iModelViewProjectionMatrix = gl.getUniformLocation(prog, "ModelViewProjectionMatrix");
     shProgram.iLightPosition          = gl.getUniformLocation(prog, "lightPosition");
     shProgram.iNormalMatrix           = gl.getUniformLocation(prog, "normalMatrix");
 
     surface = new Model('Surface');
-    surface.BufferData(CreateSurfaceData());
+    const {vertices, texcoords} = CreateSurfaceData();
+    surface.BufferData(vertices, texcoords);
 
     gl.enable(gl.DEPTH_TEST);
 }
@@ -222,4 +235,20 @@ function init() {
     zInput.addEventListener("input", updateLight);
 
     draw();
+
+    const image = new Image();
+    image.src = "https://www.the3rdsequence.com/texturedb/download/257/texture/jpg/1024/green+moss-1024x1024.jpg";
+    image.crossOrigin = "anonymous";
+    image.onload = () => {
+        document.body.appendChild(image);
+        setTexture(gl, image);
+    }
+}
+
+function setTexture(gl, image) {
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 }

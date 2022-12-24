@@ -3,15 +3,18 @@
 // Vertex shader
 const vertexShaderSource = `
 attribute vec3 vertex;
+attribute vec2 texcoord;
 uniform mat4 ModelViewProjectionMatrix;
 
 varying vec3 vVertex;
 varying vec3 vVertexPosition;
+varying vec2 vTexcoord;
 
 void main() {
     vec4 position = ModelViewProjectionMatrix * vec4(vertex,1.0);
 
     vVertex = vertex;
+    vTexcoord = texcoord;
     vVertexPosition = vec3(position) / position.w;
 
     gl_Position = position;
@@ -28,9 +31,11 @@ const fragmentShaderSource = `
 
 varying vec3 vVertex;
 varying vec3 vVertexPosition;
+varying vec2 vTexcoord;
 
 uniform mat4 normalMatrix;
 uniform vec3 lightPosition;
+uniform sampler2D uTexture;
 
 vec3 calculate_light(vec3 position) {
     vec3 shape_color = vec3(0.81176470588235, 0.12156862745098, 0.054901960784313);
@@ -57,5 +62,7 @@ vec3 calculate_light(vec3 position) {
 }
 
 void main() {
-    gl_FragColor = vec4(calculate_light(vVertexPosition), 1.);
+    vec4 texture = texture2D(uTexture, vTexcoord);
+    vec4 lightColor = vec4(calculate_light(vVertexPosition), 1.);
+    gl_FragColor = texture * lightColor;
 }`;

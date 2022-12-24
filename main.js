@@ -146,6 +146,7 @@ function initGL() {
     shProgram.iModelViewProjectionMatrix = gl.getUniformLocation(prog, "ModelViewProjectionMatrix");
     shProgram.iLightPosition          = gl.getUniformLocation(prog, "lightPosition");
     shProgram.iNormalMatrix           = gl.getUniformLocation(prog, "normalMatrix");
+    shProgram.iTexScale               = gl.getUniformLocation(prog, "texScale");
 
     surface = new Model('Surface');
     const {vertices, texcoords} = CreateSurfaceData();
@@ -218,6 +219,8 @@ function init() {
     const xInput = document.getElementById("x");
     const yInput = document.getElementById("y");
     const zInput = document.getElementById("z");
+    const scaleUInput = document.getElementById("scaleU");
+    const scaleVInput = document.getElementById("scaleV");
 
     const updateLight = () => {
         const x = parseFloat(xInput.value);
@@ -228,9 +231,19 @@ function init() {
         draw();
     };
 
+    gl.uniform2fv(shProgram.iTexScale, [1, 1]);
+    const reScale = () => {
+        const scaleU = parseFloat(scaleUInput.value);
+        const scaleV = parseFloat(scaleVInput.value);
+        gl.uniform2fv(shProgram.iTexScale, [scaleU, scaleV]);
+        draw();
+    };
+
     xInput.addEventListener("input", updateLight);
     yInput.addEventListener("input", updateLight);
     zInput.addEventListener("input", updateLight);
+    scaleUInput.addEventListener("input", reScale);
+    scaleVInput.addEventListener("input", reScale);
 
     draw();
 

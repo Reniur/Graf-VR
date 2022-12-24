@@ -5,17 +5,53 @@ const vertexShaderSource = `
 attribute vec3 vertex;
 attribute vec2 texcoord;
 uniform mat4 ModelViewProjectionMatrix;
+uniform vec2 texScale;
 
 varying vec3 vVertex;
 varying vec3 vVertexPosition;
 varying vec2 vTexcoord;
 
+mat4 genScaleMat(vec3 v) {
+  return mat4(
+    vec4(v.x, 0.0, 0.0, 0.0),
+    vec4(0.0, v.y, 0.0, 0.0),
+    vec4(0.0, 0.0, v.z, 0.0),
+    vec4(0.0, 0.0, 0.0, 1.0)
+  );
+}
+
+mat4 genTranslateMat(vec3 v) {
+  return mat4(
+    vec4(1.0, 0.0, 0.0, v.x),
+    vec4(0.0, 1.0, 0.0, v.y),
+    vec4(0.0, 0.0, 1.0, v.z),
+    vec4(0.0, 0.0, 0.0, 1.0)
+  );
+}
+
+vec2 scaleWithPoint(vec2 point, vec2 pivot, vec2 scale) {
+    mat4 tran = genTranslateMat(vec3(pivot, 0.));
+    mat4 tranBack = genTranslateMat(-vec3(pivot, 0.));
+    mat4 scaleMat = genScaleMat(vec3(scale, 0.));
+
+    vec4 point4 = vec4(point, 0., 0.);
+
+    // vec4 tr = tran * point4;
+    vec4 sc = point4 * scaleMat;
+    // vec4 trb = tr * tranBack;
+
+    return vec2(sc);
+}
+
 void main() {
     vec4 position = ModelViewProjectionMatrix * vec4(vertex,1.0);
 
     vVertex = vertex;
-    vTexcoord = texcoord;
     vVertexPosition = vec3(position) / position.w;
+
+    vec2 point = vec2(0.5, 0.5);
+
+    vTexcoord = scaleWithPoint(texcoord, point, texScale);
 
     gl_Position = position;
 }`;

@@ -239,6 +239,7 @@ function init() {
     image.crossOrigin = "anonymous";
     image.onload = () => {
         setTexture(gl, image);
+        draw();
     }
 }
 

@@ -38,7 +38,7 @@ uniform vec3 lightPosition;
 uniform sampler2D uTexture;
 
 vec3 calculate_light(vec3 position) {
-    vec3 shape_color = vec3(0.81176470588235, 0.12156862745098, 0.054901960784313);
+    vec3 shape_color = vec3(1., 1., 1.);
     vec3 light_color = vec3(0., 1., 1.);
 
     vec3 ambient = light_color * 0.2;

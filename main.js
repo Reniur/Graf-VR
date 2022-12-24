@@ -224,8 +224,6 @@ function init() {
         const y = parseFloat(yInput.value);
         const z = parseFloat(zInput.value);
 
-        console.log(x, y, z);
-
         gl.uniform3fv(shProgram.iLightPosition, [x, y, z]);
         draw();
     };

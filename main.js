@@ -147,6 +147,7 @@ function initGL() {
     shProgram.iLightPosition          = gl.getUniformLocation(prog, "lightPosition");
     shProgram.iNormalMatrix           = gl.getUniformLocation(prog, "normalMatrix");
     shProgram.iTexScale               = gl.getUniformLocation(prog, "texScale");
+    shProgram.iTexCenter = gl.getUniformLocation(prog, 'texCenter');
 
     surface = new Model('Surface');
     const {vertices, texcoords} = CreateSurfaceData();
@@ -221,6 +222,8 @@ function init() {
     const zInput = document.getElementById("z");
     const scaleUInput = document.getElementById("scaleU");
     const scaleVInput = document.getElementById("scaleV");
+    const centerUInput = document.getElementById("centerU");
+    const centerVInput = document.getElementById("centerV");
 
     const updateLight = () => {
         const x = parseFloat(xInput.value);
@@ -232,10 +235,17 @@ function init() {
     };
 
     gl.uniform2fv(shProgram.iTexScale, [1, 1]);
+    gl.uniform2fv(shProgram.iTexCenter, [0, 0]);
     const reScale = () => {
         const scaleU = parseFloat(scaleUInput.value);
         const scaleV = parseFloat(scaleVInput.value);
         gl.uniform2fv(shProgram.iTexScale, [scaleU, scaleV]);
+        draw();
+    };
+    const center = () => {
+        const centerU = parseFloat(centerUInput.value);
+        const centerV = parseFloat(centerVInput.value);
+        gl.uniform2fv(shProgram.iTexCenter, [centerU, centerV]);
         draw();
     };
 
@@ -244,6 +254,8 @@ function init() {
     zInput.addEventListener("input", updateLight);
     scaleUInput.addEventListener("input", reScale);
     scaleVInput.addEventListener("input", reScale);
+    centerUInput.addEventListener("input", center);
+    centerVInput.addEventListener("input", center);
 
     draw();
 

@@ -240,7 +240,6 @@ function init() {
     image.src = "https://www.the3rdsequence.com/texturedb/download/257/texture/jpg/1024/green+moss-1024x1024.jpg";
     image.crossOrigin = "anonymous";
     image.onload = () => {
-        document.body.appendChild(image);
         setTexture(gl, image);
     }
 }

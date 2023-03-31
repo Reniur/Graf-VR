@@ -312,7 +312,9 @@ function init() {
     const centerVInput = document.getElementById("centerV");
     const eyeSeparationInput = document.getElementById("eyeSeparation");
     const convergenceInput = document.getElementById("convergence");
-    const fovIntput = document.getElementById("fov");
+    const fovInput = document.getElementById("fov");
+    const nearInput = document.getElementById("near");
+
 
     const updateLight = () => {
         const x = parseFloat(xInput.value);
@@ -340,7 +342,8 @@ function init() {
     const stereoCam = () => {
         stereoCamera.eyeSeparation = parseFloat(eyeSeparationInput.value);
         stereoCamera.convergence = parseFloat(convergenceInput.value);
-        stereoCamera.fov = deg2rad(parseFloat(fovIntput.value));
+        stereoCamera.fov = deg2rad(parseFloat(fovInput.value));
+        stereoCamera.near = parseFloat(nearInput.value);
         draw();
     }
 
@@ -353,7 +356,8 @@ function init() {
     centerVInput.addEventListener("input", center);
     eyeSeparationInput.addEventListener("input", stereoCam);
     convergenceInput.addEventListener("input", stereoCam);
-    fovIntput.addEventListener("input", stereoCam);
+    fovInput.addEventListener("input", stereoCam);
+    nearInput.addEventListener("input", stereoCam);
 
     draw();
 

@@ -152,7 +152,7 @@ function drawRight() {
  */
 function draw() { 
     gl.clearColor(0,0,0,1);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     
     gl.clear(gl.DEPTH_BUFFER_BIT);
     gl.colorMask(true, false, false, true);
@@ -289,6 +289,17 @@ function init() {
             "<p>Sorry, could not initialize the WebGL graphics context: " + e + "</p>";
         return;
     }
+
+    const videoElement = document.querySelector('video');
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            videoElement.srcObject = stream;
+            videoElement.play();
+        })
+        .catch(error => {
+            console.error('Error accessing user media', error);
+        });
 
     spaceball = new TrackballRotator(canvas, draw, 0);
 

@@ -220,10 +220,10 @@ function initGL() {
     const ap = gl.canvas.width / gl.canvas.height;
 
     stereoCamera = {
-        eyeSeparation: 0.01,
+        eyeSeparation: 0.004,
         convergence: 1,
         aspectRatio: ap,
-        fov: deg2rad(15),
+        fov: deg2rad(30),
         near: 0.0001,
         far: 20,
     };
@@ -299,6 +299,9 @@ function init() {
     const scaleVInput = document.getElementById("scaleV");
     const centerUInput = document.getElementById("centerU");
     const centerVInput = document.getElementById("centerV");
+    const eyeSeparationInput = document.getElementById("eyeSeparation");
+    const convergenceInput = document.getElementById("convergence");
+    const fovIntput = document.getElementById("fov");
 
     const updateLight = () => {
         const x = parseFloat(xInput.value);
@@ -323,6 +326,12 @@ function init() {
         gl.uniform2fv(shProgram.iTexCenter, [centerU, centerV]);
         draw();
     };
+    const stereoCam = () => {
+        stereoCamera.eyeSeparation = parseFloat(eyeSeparationInput.value);
+        stereoCamera.convergence = parseFloat(convergenceInput.value);
+        stereoCamera.fov = deg2rad(parseFloat(fovIntput.value));
+        draw();
+    }
 
     xInput.addEventListener("input", updateLight);
     yInput.addEventListener("input", updateLight);
@@ -331,6 +340,9 @@ function init() {
     scaleVInput.addEventListener("input", reScale);
     centerUInput.addEventListener("input", center);
     centerVInput.addEventListener("input", center);
+    eyeSeparationInput.addEventListener("input", stereoCam);
+    convergenceInput.addEventListener("input", stereoCam);
+    fovIntput.addEventListener("input", stereoCam);
 
     draw();
 

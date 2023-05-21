@@ -7,6 +7,7 @@ let spaceball;                  // A SimpleRotator object that lets the user rot
 let verticalPoints = 0;
 let horizontalPoints = 0;
 let stereoCamera;
+let magRotation;
 
 function deg2rad(angle) {
     return angle * Math.PI / 180;
@@ -104,6 +105,9 @@ function drawLeft() {
 
     let matAccum0 = m4.multiply(rotateToPointZero, modelView );
     let matAccum1 = m4.multiply(translateToPointZero, matAccum0 );
+    if (magRotation) {
+      matAccum1 = m4.multiply(matAccum1, magRotation);
+    }
 
     const modelviewInv = m4.inverse(matAccum1, new Float32Array(16));
     const normalMatrix = m4.transpose(modelviewInv, new Float32Array(16));
@@ -130,6 +134,9 @@ function drawRight() {
 
     let matAccum0 = m4.multiply(rotateToPointZero, modelView );
     let matAccum1 = m4.multiply(translateToPointZero, matAccum0 );
+    if (magRotation) {
+      matAccum1 = m4.multiply(matAccum1, magRotation);
+    }
 
     const modelviewInv = m4.inverse(matAccum1, new Float32Array(16));
     const normalMatrix = m4.transpose(modelviewInv, new Float32Array(16));
@@ -367,6 +374,19 @@ function init() {
     image.onload = () => {
         setTexture(gl, image);
         draw();
+    }
+
+    if ("Magnetometer" in window) {
+      const magSensor = new Magnetometer({ frequency: 60 });
+      magSensor.addEventListener("reading", () => {
+        const rotationY = Math.atan2(magSensor.x, magSensor.z);
+        const rotationMat = m4.yRotation(rotationY);
+        magRotation = rotationMat;
+
+        draw();
+      });
+      magSensor.start();
+
     }
 }
 

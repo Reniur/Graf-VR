@@ -95,10 +95,6 @@ function drawLeft() {
 
     let matAccum0 = m4.multiply(rotateToPointZero, modelView );
     let matAccum1 = m4.multiply(translateToPointZero, matAccum0 );
-    if (magRotation) {
-      matAccum1 = m4.multiply(matAccum1, magRotation);
-    }
-
     let modelviewInv = m4.inverse(matAccum1, new Float32Array(16));
     let normalMatrix = m4.transpose(modelviewInv, new Float32Array(16));
         

@@ -221,8 +221,8 @@ function createSphereData() {
       const v2 = (stackNumber + 1) / verticalPieces;
 
       const offset = 1.2;
-      sphereVertices.push(x1, y1 + offset, z1);
-      sphereVertices.push(x2, y2 + offset, z2);
+      sphereVertices.push(x1 + offset, y1 + offset, z1);
+      sphereVertices.push(x2 + offset, y2 + offset, z2);
       sphereUvs.push(u1, v1);
       sphereUvs.push(u2, v2);
     }

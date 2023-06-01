@@ -11,6 +11,8 @@ let magRotation;
 let sphereVertices, sphereUvs;
 let vertices, uvs;
 
+let audio = {};
+
 function deg2rad(angle) {
     return angle * Math.PI / 180;
 }
@@ -401,12 +403,58 @@ function init() {
       magSensor.start();
 
     }
+
+  initAudio();
+  initCheckBox();
 }
 
+async function initAudio() {
+  await new Promise(resolve => setTimeout(resolve, 3000));
+  const audioContext = new AudioContext();
+  const decodedAudioData = await fetch("/Graf-VR/music.mp3")
+    .then(response => response.arrayBuffer())
+    .then(audioData => audioContext.decodeAudioData(audioData));
+
+  const source = audioContext.createBufferSource();
+  source.buffer = decodedAudioData;
+  source.connect(audioContext.destination);
+  source.start();
+  const panner = audioContext.createPanner();
+  const volume = audioContext.createGain();
+  volume.connect(panner);
+  const highpass = audioContext.createBiquadFilter();
+  highpass.type = "lowshelf";
+  highpass.frequency.value = 500;
+
+  audio.panner = panner;
+  audio.context = audioContext;
+  audio.filter = highpass;
+  audio.source = source;
+  source.connect(highpass);
+
+  window.setAudioPosition = (x, y, z) => {
+    panner.positionX.value = x;
+    panner.positionY.value = y;
+    panner.positionZ.value = z;
+  }
+
+}
 function setTexture(gl, image) {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+}
+
+function initCheckBox() {
+  const toggle = document.querySelector("#toggleFilter");
+
+  toggle.onchange = e => {
+    if (e.target.checked) {
+      audio.filter.connect(audio.context.destination);
+    } else {
+      audio.filter.disconnect();
+    }
+  }
 }

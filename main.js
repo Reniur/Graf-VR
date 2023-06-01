@@ -8,6 +8,8 @@ let verticalPoints = 0;
 let horizontalPoints = 0;
 let stereoCamera;
 let magRotation;
+let sphereVertices, sphereUvs;
+let vertices, uvs;
 
 function deg2rad(angle) {
     return angle * Math.PI / 180;
@@ -15,35 +17,23 @@ function deg2rad(angle) {
 
 
 // Constructor
-function Model(name) {
-    this.name = name;
-    this.count = 0;
-    this.vertices;
+function Model() {
 
-    this.BufferData = function(vertices, texcoords) {
+    this.BufferData = function() {
+        const allVertices = vertices.concat(sphereVertices);
+        const allUvs = uvs.concat(sphereUvs);
+        const allBuffer = allVertices.concat(allUvs);
 
         // vertices
         const vBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STREAM_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(allBuffer), gl.STREAM_DRAW);
+
         gl.enableVertexAttribArray(shProgram.iAttribVertex);
         gl.vertexAttribPointer(shProgram.iAttribVertex, 3, gl.FLOAT, false, 0, 0);
 
-        // texcoords
-        const tBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, tBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoords), gl.STREAM_DRAW);
         gl.enableVertexAttribArray(shProgram.iAttribTexcoord);
-        gl.vertexAttribPointer(shProgram.iAttribTexcoord, 2, gl.FLOAT, false, 0, 0);
-
-        this.count = vertices.length / 3;
-        this.vertices = vertices;
-    }
-
-    this.Draw = function() {
-
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, this.count);
-
+        gl.vertexAttribPointer(shProgram.iAttribTexcoord, 2, gl.FLOAT, false, 0, allVertices * 4);
     }
 }
 
@@ -120,7 +110,8 @@ function drawLeft() {
 
     gl.uniformMatrix4fv(shProgram.iNormalMatrix, false, normalMatrix);
 
-    surface.Draw();
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertices.length / 3);
+    gl.drawArrays(gl.TRIANGLE_STRIP, vertices.length / 3, sphereVertices.length / 3);
 }
 
 function drawRight() {
@@ -149,7 +140,7 @@ function drawRight() {
 
     gl.uniformMatrix4fv(shProgram.iNormalMatrix, false, normalMatrix);
 
-    surface.Draw();
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertices.length / 3);
 }
 
 
@@ -162,11 +153,11 @@ function draw() {
     // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     
     gl.clear(gl.DEPTH_BUFFER_BIT);
-    gl.colorMask(true, false, false, true);
+    // gl.colorMask(true, false, false, true);
     drawLeft();
-    gl.clear(gl.DEPTH_BUFFER_BIT);
-    gl.colorMask(false, true, true, true);
-    drawRight();
+    // gl.clear(gl.DEPTH_BUFFER_BIT);
+    // gl.colorMask(false, true, true, true);
+    // drawRight();
 }
 
 function CreateSurfaceData() {
@@ -201,9 +192,44 @@ function CreateSurfaceData() {
         }
     }
 
-    return {vertices, texcoords};
+    return {vertices, uvs: texcoords};
 }
 
+function createSphereData() {
+  const radius = 0.15;
+  const horizontalPieces = 16;
+  const verticalPieces = 16;
+  const sphereVertices = [];
+  const sphereUvs = [];
+
+  for(let stackNumber = 0; stackNumber <= verticalPieces; stackNumber++) {
+    const theta = stackNumber * Math.PI / verticalPieces;
+    const nextTheta = (stackNumber + 1) * Math.PI / verticalPieces;
+
+    for(let sliceNumber = 0; sliceNumber <= horizontalPieces; sliceNumber++) {
+      const phi = sliceNumber * 2 * Math.PI / horizontalPieces;
+      const nextPhi = (sliceNumber + 1) * 2 * Math.PI / horizontalPieces;
+      const x1 = radius * Math.sin(theta) * Math.cos(phi);
+      const y1 = radius * Math.cos(theta);
+      const z1 = radius * Math.sin(theta) * Math.sin(phi);
+      const u1 = sliceNumber / horizontalPieces;
+      const v1 = stackNumber / verticalPieces;
+      const x2 = radius * Math.sin(nextTheta) * Math.cos(nextPhi);
+      const y2 = radius * Math.cos(nextTheta);
+      const z2 = radius * Math.sin(nextTheta) * Math.sin(nextPhi);
+      const u2 = (sliceNumber + 1) / horizontalPieces;
+      const v2 = (stackNumber + 1) / verticalPieces;
+
+      const offset = 1.2;
+      sphereVertices.push(x1, y1 + offset, z1);
+      sphereVertices.push(x2, y2 + offset, z2);
+      sphereUvs.push(u1, v1);
+      sphereUvs.push(u2, v2);
+    }
+  }
+
+  return { sphereVertices, sphereUvs };
+}
 
 /* Initialize the WebGL context. Called from init() */
 function initGL() {
@@ -220,9 +246,14 @@ function initGL() {
     shProgram.iTexScale               = gl.getUniformLocation(prog, "texScale");
     shProgram.iTexCenter = gl.getUniformLocation(prog, 'texCenter');
 
-    surface = new Model('Surface');
-    const {vertices, texcoords} = CreateSurfaceData();
-    surface.BufferData(vertices, texcoords);
+    surface = new Model();
+    let a = createSphereData();
+    let b = CreateSurfaceData();
+    sphereVertices = a.sphereVertices;
+    sphereUvs = a.sphereUvs;
+    vertices = b.vertices;
+    uvs = b.uvs;
+    surface.BufferData();
 
     const ap = gl.canvas.width / gl.canvas.height;
 
@@ -297,16 +328,16 @@ function init() {
         return;
     }
 
-    const videoElement = document.querySelector('video');
-
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => {
-            videoElement.srcObject = stream;
-            videoElement.play();
-        })
-        .catch(error => {
-            console.error('Error accessing user media', error);
-        });
+    // const videoElement = document.querySelector('video');
+    //
+    // navigator.mediaDevices.getUserMedia({ video: true })
+    //     .then(stream => {
+    //         videoElement.srcObject = stream;
+    //         videoElement.play();
+    //     })
+    //     .catch(error => {
+    //         console.error('Error accessing user media', error);
+    //     });
 
     spaceball = new TrackballRotator(canvas, draw, 0);
 

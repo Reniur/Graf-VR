@@ -397,6 +397,9 @@ function init() {
         const mZ = m4.zRotation(rotationZ);
         const acc = m4.multiply(mX, mY);
         magRotation = m4.multiply(acc, mZ);
+        if (window.setAudioPosition) {
+        setAudioPosition(rotationX, rotationY, rotationZ);
+      }
 
         draw();
       });
